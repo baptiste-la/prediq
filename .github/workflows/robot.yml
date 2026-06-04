@@ -1,0 +1,24 @@
+name: Polymarket AI Scanner Robot
+
+on:
+  schedule:
+    - cron: '0 * * * *' # S'exécute automatiquement TOUTES LES HEURES
+  workflow_dispatch: # Te permet de le lancer à la main en 1 clic pour tester
+
+jobs:
+  run-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code du dépôt
+        uses: actions/checkout@v3
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-node: '18'
+
+      - name: Installer les dépendances du robot
+        run: npm install node-fetch
+
+      - name: Lancer le Robot Scanner
+        run: node scanner.js
