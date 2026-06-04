@@ -187,3 +187,11 @@ export default function App() {
               {isLocked ? (
                 <div style={styles.lockedBox}>
                    <p style={styles.lockedText}>🔒 AI Analysis locked for Free users</p>
+
+                  // Permet d'injecter directement l'application dans la page blanche
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  const ReactClient = require("react-dom/client");
+  const root = ReactClient.createRoot(rootElement);
+  root.render(<App />);
+}
