@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-// Note: "FR" est retiré de la liste des pays bloqués pour que tu puisses tester ton site en direct depuis la France
 const BLOCKED_COUNTRIES = ["US", "GB", "DE", "NL", "IT", "ES", "BE", "PL", "PT"];
 
 function formatVolume(n) {
@@ -10,6 +9,7 @@ function formatVolume(n) {
   return `$${n}`;
 }
 
+// Le composant doit s'appeler App pour correspondre au fichier main.jsx
 export default function App() {
   const [markets, setMarkets] = useState([]);
   const [blocked, setBlocked] = useState(false);
@@ -17,13 +17,10 @@ export default function App() {
   const [filter, setFilter] = useState("all");
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(true);
-  
-  // Simulation de l'état de l'utilisateur (Premium ou Gratuit)
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     async function initPlatform() {
-      // 1. Vérification de la géolocalisation (Gratuit)
       try {
         const res = await fetch("https://ip-api.com/json/?fields=countryCode");
         const data = await res.json();
@@ -34,7 +31,6 @@ export default function App() {
         // En cas d'échec de l'API géo, on laisse l'accès standard
       }
 
-      // 2. Récupération en direct de tes vraies données de production Supabase
       try {
         const SUPABASE_URL = "https://ugwmggmhgijkyyrkjcyo.supabase.co/rest/v1/markets?select=*";
         const res = await fetch(SUPABASE_URL, {
@@ -44,8 +40,6 @@ export default function App() {
           }
         });
         const data = await res.json();
-        
-        // Tri dynamique par score IA décroissant
         const sorted = data.sort((a, b) => b.score - a.score);
         setMarkets(sorted);
       } catch (error) {
@@ -86,7 +80,7 @@ export default function App() {
         </div>
         <label style={styles.checkLabel}>
           <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={styles.checkbox} />
-          <span>I confirm I am legally allowed to use this service</span>
+          <span style={{ color: "#fff" }}>I confirm I am legally allowed to use this service</span>
         </label>
         <button
           style={{ ...styles.termsBtn, opacity: agreed ? 1 : 0.4, cursor: agreed ? "pointer" : "not-allowed" }}
@@ -100,7 +94,6 @@ export default function App() {
 
   return (
     <div style={styles.app}>
-      {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerInner}>
           <div style={styles.logo}>
@@ -118,7 +111,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Hero */}
       <div style={styles.hero}>
         <h1 style={styles.heroTitle}>Find Your Edge.<br />Beat the Market.</h1>
         <p style={styles.heroSub}>AI analyzes every Polymarket opportunity in real-time so you don't have to.</p>
@@ -129,7 +121,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Filters */}
       <div style={styles.filters}>
         {["all", "top", "medium"].map(f => (
           <button key={f} style={{ ...styles.filterBtn, ...(filter === f ? styles.filterActive : {}) }} onClick={() => setFilter(f)}>
@@ -138,15 +129,12 @@ export default function App() {
         ))}
       </div>
 
-      {/* Markets Grid */}
       <div style={styles.grid}>
         {loading ? (
           <div style={styles.loader}>Loading smart markets...</div>
         ) : filtered.map(market => {
           const scoreColor = market.score >= 70 ? "#00ff88" : market.score >= 50 ? "#ffcc00" : "#ff6b6b";
           const verdictColor = market.verdict === "BUY" ? "#00ff88" : market.verdict === "SELL" ? "#ff6b6b" : "#ffcc00";
-          
-          // PROTECTION PAYWALL : On cache l'analyse des "Top Picks" (Score >= 70) si l'utilisateur n'est pas premium
           const isLocked = market.score >= 70 && !isPremium;
 
           return (
@@ -183,15 +171,71 @@ export default function App() {
                 <span style={styles.meta}>💧 {formatVolume(market.liquidity)}</span>
               </div>
 
-              {/* Affichage conditionnel Paywall selon le plan */}
-              {isLocked ? (
+              {isLocked && (
                 <div style={styles.lockedBox}>
-                   <p style={styles.lockedText}>🔒 AI Analysis locked for Free users</p>
-
-                  // Permet d'injecter directement l'application dans la page blanche
-const rootElement = document.getElementById("root");
-if (rootElement) {
-  const ReactClient = require("react-dom/client");
-  const root = ReactClient.createRoot(rootElement);
-  root.render(<App />);
+                  <p style={styles.lockedText}>🔒 AI Analysis locked for Free users</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
+
+// Les styles manquants indispensables pour éviter le crash de l'affichage
+const styles = {
+  app: { backgroundColor: "#0b0e14", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "40px" },
+  header: { borderBottom: "1px solid #1e2530", padding: "15px 20px" },
+  headerInner: { display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: "1200px", margin: "0 auto" },
+  logo: { display: "flex", alignItems: "center", gap: "8px", fontWeight: "bold", fontSize: "20px" },
+  logoIcon: { color: "#00ff88" },
+  logoText: { letterSpacing: "1px" },
+  headerRight: { display: "flex", alignItems: "center", gap: "15px" },
+  premiumBtn: { background: "linear-gradient(90deg, #ffcc00, #ff6b6b)", border: "none", color: "#000", padding: "8px 16px", borderRadius: "20px", fontWeight: "bold", cursor: "pointer" },
+  liveTag: { color: "#00ff88", fontSize: "12px", fontWeight: "bold" },
+  hero: { textAlign: "center", padding: "60px 20px", maxWidth: "800px", margin: "0 auto" },
+  heroTitle: { fontSize: "40px", marginBottom: "15px", lineHeight: "1.2" },
+  heroSub: { color: "#8a99ad", fontSize: "18px", marginBottom: "30px" },
+  stats: { display: "flex", justifyContent: "center", alignItems: "center", gap: "30px" },
+  stat: { display: "flex", flexDirection: "column", gap: "5px" },
+  statNum: { fontSize: "24px", fontWeight: "bold", color: "#00ff88" },
+  statLabel: { color: "#8a99ad", fontSize: "14px" },
+  statDiv: { width: "1px", height: "30px", backgroundColor: "#1e2530" },
+  filters: { display: "flex", justifyContent: "center", gap: "10px", marginBottom: "40px" },
+  filterBtn: { backgroundColor: "#1e2530", border: "1px solid #2d3748", color: "#8a99ad", padding: "10px 20px", borderRadius: "20px", cursor: "pointer", fontWeight: "bold" },
+  filterActive: { backgroundColor: "#00ff88", color: "#000", borderColor: "#00ff88" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px", maxWidth: "1200px", margin: "0 auto", padding: "0 20px" },
+  loader: { textAlign: "center", width: "100%", color: "#8a99ad" },
+  card: { backgroundColor: "#141a24", border: "1px solid #1e2530", borderRadius: "12px", padding: "20px", display: "flex", flexDirection: "column", gap: "15px" },
+  cardTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  scoreBadge: { padding: "4px 8px", borderRadius: "6px", fontSize: "14px", fontWeight: "bold" },
+  verdictBadge: { padding: "4px 8px", borderRadius: "6px", fontSize: "14px", fontWeight: "bold" },
+  question: { fontSize: "18px", lineHeight: "1.4", margin: 0 },
+  probRow: { display: "flex", alignItems: "center", gap: "10px" },
+  probItem: { display: "flex", flexDirection: "column", minWidth: "40px" },
+  probLabel: { fontSize: "11px", color: "#8a99ad" },
+  probValue: { fontSize: "14px", fontWeight: "bold", color: "#00ff88" },
+  probBar: { flex: 1, height: "6px", backgroundColor: "#1e2530", borderRadius: "3px", overflow: "hidden" },
+  probFill: { height: "100%", backgroundColor: "#00ff88" },
+  metaRow: { display: "flex", gap: "15px", borderTop: "1px solid #1e2530", paddingTop: "12px" },
+  meta: { fontSize: "13px", color: "#8a99ad" },
+  lockedBox: { backgroundColor: "#1e141a", border: "1px dashed #ff6b6b", borderRadius: "8px", padding: "10px", textAlign: "center" },
+  lockedText: { margin: 0, color: "#ff6b6b", fontSize: "13px" },
+  blocked: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#0b0e14", color: "#fff" },
+  blockedCard: { textAlign: "center", padding: "40px", backgroundColor: "#141a24", borderRadius: "12px", border: "1px solid #1e2530" },
+  blockedIcon: { fontSize: "48px", marginBottom: "20px" },
+  blockedTitle: { fontSize: "24px", marginBottom: "10px" },
+  blockedText: { color: "#8a99ad" },
+  termsOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#0b0e14", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, padding: "20px" },
+  termsCard: { backgroundColor: "#141a24", border: "1px solid #1e2530", borderRadius: "16px", padding: "40px", maxWidth: "500px", width: "100%", textAlign: "center" },
+  termsLogo: { fontSize: "40px", color: "#00ff88", marginBottom: "10px" },
+  termsTitle: { fontSize: "32px", fontWeight: "bold", margin: 0, letterSpacing: "2px" },
+  termsSubtitle: { color: "#8a99ad", fontSize: "14px", marginBottom: "30px" },
+  termsBox: { backgroundColor: "#0b0e14", border: "1px solid #1e2530", borderRadius: "8px", padding: "20px", textAlign: "left", marginBottom: "20px" },
+  termsText: { color: "#cbd5e1", fontSize: "14px", margin: 0, lineHeight: "1.6" },
+  checkLabel: { display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", marginBottom: "30px", cursor: "pointer", fontSize: "14px" },
+  checkbox: { width: "16px", height: "16px", accentColor: "#00ff88" },
+  termsBtn: { width: "100%", backgroundColor: "#00ff88", color: "#000", border: "none", padding: "14px", borderRadius: "8px", fontWeight: "bold", fontSize: "16px", transition: "opacity 0.2s" }
+};
